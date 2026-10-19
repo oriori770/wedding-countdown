@@ -9,8 +9,10 @@ export interface QuizData {
 
 export interface CountdownDay {
   id: number;
-  day_number: number;
-  unlock_date: string; // ISO Date format: 'YYYY-MM-DD'
+  day_number: number | null;
+  unlock_date: string | null; // ISO Date format: 'YYYY-MM-DD'
+  is_approved?: boolean;
+  created_at?: string;
   hebrew_date?: string; // e.g., "א' כסלו", "כ״ט כסלו"
   civil_date?: string; // e.g., "11.11", "09.12"
   day_of_week?: string; // e.g., "יום רביעי", "שבת"
@@ -22,4 +24,3 @@ export interface CountdownDay {
   quiz_data?: QuizData; // Required if type === 'quiz'
   coupon_code?: string; // Optional text shown inside a scratch/reveal box if type === 'coupon'
 }
-

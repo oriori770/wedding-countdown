@@ -40,6 +40,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
   // Check if a specific day is unlocked
   const isDayUnlocked = (day: CountdownDay) => {
     if (isPreviewMode) return true;
+    if (!day.unlock_date) return false;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -49,6 +50,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
 
     return today.getTime() >= unlockDate.getTime();
   };
+
 
   // Day 1 (א' כסלו) starts on Wednesday (Index 3: Sun=0, Mon=1, Tue=2, Wed=3).
   // Therefore, we render 3 empty slots before Day 1.
@@ -120,7 +122,11 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
             const isUnlocked = isDayUnlocked(day);
             const isOpened = openedDayIds.includes(day.id);
             const isWeddingDay = day.day_number === 29;
-            const hebrewNumeral = HEBREW_DAYS_NUMERALS[day.day_number] || `${day.day_number}`;
+            const hebrewNumeral =
+              (day.day_number !== null
+                ? HEBREW_DAYS_NUMERALS[day.day_number]
+                : undefined) || `${day.day_number ?? ''}`;
+
 
             // 1. Wedding Day Special Styling (Day 29 - 9 Dec)
             if (isWeddingDay) {

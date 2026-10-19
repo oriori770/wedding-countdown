@@ -18,6 +18,7 @@ export const DayCard: React.FC<DayCardProps> = ({
   // Check unlock status normalized to local midnight 00:00:00
   const isUnlocked = React.useMemo(() => {
     if (isPreviewMode) return true;
+    if (!day.unlock_date) return false;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -31,6 +32,7 @@ export const DayCard: React.FC<DayCardProps> = ({
 
   // Format unlock date to Hebrew (e.g. "25 באוק׳")
   const formattedUnlockDate = React.useMemo(() => {
+    if (!day.unlock_date) return 'טרם נקבע';
     try {
       const [year, month, dayNum] = day.unlock_date.split('-').map(Number);
       const date = new Date(year, month - 1, dayNum);
@@ -39,9 +41,10 @@ export const DayCard: React.FC<DayCardProps> = ({
         month: 'short',
       }).format(date);
     } catch {
-      return day.unlock_date;
+      return day.unlock_date || '';
     }
   }, [day.unlock_date]);
+
 
   // Type icon helper
   const renderTypeIcon = (type: DayContentType) => {

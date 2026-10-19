@@ -2,10 +2,27 @@ import type { CountdownDay } from '../types/countdown';
 
 export const BRIDE_NAME = 'רוני';
 export const GROOM_NAME = 'תומר';
+export const ADMIN_PIN = '1234';
 
 // Wedding date: Wednesday, 29 Kislev 5787 = 9 December 2026 at 19:30
 export const WEDDING_DATE = '2026-12-09T19:30:00+02:00';
 export const KISLEV_START_DATE = '2026-11-11'; // א' כסלו (יום רביעי)
+
+/**
+ * Calculates unlock date ISO string ('YYYY-MM-DD') based on day_number (1 to 29).
+ * Day 1 = 2026-11-11, Day 2 = 2026-11-12, etc.
+ */
+export function calculateUnlockDate(dayNumber: number): string {
+  const [year, month, day] = KISLEV_START_DATE.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day);
+  targetDate.setDate(targetDate.getDate() + (dayNumber - 1));
+
+  const y = targetDate.getFullYear();
+  const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const d = String(targetDate.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 
 // Hebrew day numerals
 export const HEBREW_DAYS_NUMERALS: Record<number, string> = {
@@ -508,5 +525,38 @@ export const MOCK_DAYS: CountdownDay[] = [
       'בוקר טוב כלה מדהימה שלי! היום זה היום שחלמנו עליו. השמש זורחת בשבילך, הפרחים מחכים לך, ואני מחכה לשנייה שבה אענוד לך את הטבעת ואגיד לך ״הרי את מקודשת לי״. שיהיה לנו יום קסום, מלא צחוק, התרגשות ואהבה אינסופית!',
     sender_name: 'תומר, בעלך לעתיד 💍👰🤵',
     media_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
+    is_approved: true,
   },
 ];
+
+export const INITIAL_PENDING_SUBMISSIONS: CountdownDay[] = [
+  {
+    id: 101,
+    day_number: null,
+    unlock_date: null,
+    is_approved: false,
+    title: 'הפתעה מחברות הילדות!',
+    type: 'letter',
+    content:
+      'רוני אהובה שלנו! לא מאמינות שהרגע הזה הגיע. זוכרות אותך עוד עם צמות בבית ספר יסודי, והיום את כלה מהממת. אוהבות אותך בלי סוף!',
+    sender_name: 'יעל ומורן (חברות מהיסודי) 👭',
+    media_url:
+      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80',
+    created_at: '2026-10-18T14:30:00Z',
+  },
+  {
+    id: 102,
+    day_number: null,
+    unlock_date: null,
+    is_approved: false,
+    title: 'ברכה מיוחדת מדוד יוסי',
+    type: 'video',
+    content:
+      'ברכה חמה מהמשפחה בצפון! שתזכו לבנות בית של שמחה, אהבה וילדים בריאים.',
+    sender_name: 'דוד יוסי ודודה רחל 🥂',
+    media_url:
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    created_at: '2026-10-19T09:15:00Z',
+  },
+];
+
