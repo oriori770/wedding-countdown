@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Assistant', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Rubik', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #fff8f8;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(254, 205, 211, 0.4) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(253, 230, 138, 0.25) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(251, 207, 232, 0.35) 0px, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+/* Custom romantic animations and styles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.35);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 10px 25px -1px rgba(244, 63, 94, 0.55);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.2s ease-in-out infinite;
+}
+
+.shimmer-foil {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 228, 230, 0.9) 0%,
+    rgba(254, 205, 211, 1) 25%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(254, 205, 211, 1) 75%,
+    rgba(255, 228, 230, 0.9) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite linear;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.glass-panel-rose {
+  background: rgba(255, 241, 242, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(254, 205, 211, 0.6);
+}
