@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { CountdownDay } from '../types/countdown';
-import { MOCK_DAYS, INITIAL_PENDING_SUBMISSIONS } from '../config/constants';
+import { MOCK_DAYS, INITIAL_PENDING_SUBMISSIONS, getDayMetadata } from '../config/constants';
+
 
 const LOCAL_STORAGE_DATA_KEY = 'wedding_countdown_all_items';
 
@@ -198,10 +199,13 @@ export async function uploadMediaFile(file: File): Promise<string> {
 export async function createSubmission(
   payload: Partial<CountdownDay>
 ): Promise<CountdownDay> {
+  const dayNum = payload.day_number ?? null;
+  const meta = getDayMetadata(dayNum, payload.unlock_date);
+
   const newItem: CountdownDay = {
     id: payload.id || Date.now(),
-    day_number: payload.day_number ?? null,
-    unlock_date: payload.unlock_date ?? null,
+    day_number: dayNum,
+    unlock_date: meta.unlock_date,
     title: payload.title || 'הפתעה חדשה לכלה',
     type: payload.type || 'letter',
     content: payload.content || '',
@@ -211,15 +215,22 @@ export async function createSubmission(
     coupon_code: payload.coupon_code,
     is_approved: payload.is_approved ?? false,
     created_at: payload.created_at || new Date().toISOString(),
-    hebrew_date: payload.hebrew_date,
-    civil_date: payload.civil_date,
+    hebrew_date: payload.hebrew_date || meta.hebrew_date || undefined,
+    civil_date: payload.civil_date || meta.civil_date || undefined,
+    day_of_week: payload.day_of_week || meta.day_of_week || undefined,
   };
 
   if (supabase) {
     try {
+      // If no explicit id provided, omit id so Postgres identity generates it
+      const dbPayload: any = { ...newItem };
+      if (!payload.id) {
+        delete dbPayload.id;
+      }
+
       const { data, error } = await supabase
         .from('countdown_days')
-        .insert(newItem)
+        .insert(dbPayload)
         .select()
         .single();
 
@@ -252,11 +263,24 @@ export async function updateDayItem(
   id: number,
   updates: Partial<CountdownDay>
 ): Promise<CountdownDay> {
+  // Automatically calculate hebrew_date, civil_date, day_of_week if day_number or unlock_date are changed
+  const enrichedUpdates = { ...updates };
+  if (updates.day_number !== undefined || updates.unlock_date !== undefined) {
+    const targetDay = updates.day_number ?? null;
+    const targetDate = updates.unlock_date ?? null;
+    const meta = getDayMetadata(targetDay, targetDate);
+
+    if (meta.unlock_date) enrichedUpdates.unlock_date = meta.unlock_date;
+    if (meta.hebrew_date) enrichedUpdates.hebrew_date = meta.hebrew_date;
+    if (meta.civil_date) enrichedUpdates.civil_date = meta.civil_date;
+    if (meta.day_of_week) enrichedUpdates.day_of_week = meta.day_of_week;
+  }
+
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('countdown_days')
-        .update(updates)
+        .update(enrichedUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -290,7 +314,7 @@ export async function updateDayItem(
 
   const updatedList = local.map((item) => {
     if (item.id === id) {
-      updatedItem = { ...item, ...updates };
+      updatedItem = { ...item, ...enrichedUpdates };
       return updatedItem;
     }
     return item;
@@ -299,6 +323,7 @@ export async function updateDayItem(
   saveLocalFallbackStore(updatedList);
   return updatedItem;
 }
+
 
 /**
  * 6. deleteDayItem:

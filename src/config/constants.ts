@@ -1,8 +1,8 @@
 import type { CountdownDay } from '../types/countdown';
 
-export const BRIDE_NAME = 'רוני';
-export const GROOM_NAME = 'תומר';
-export const ADMIN_PIN = '1234';
+export const BRIDE_NAME = 'מושקי';
+export const GROOM_NAME = 'שמוליק';
+export const ADMIN_PIN = '770';
 
 // Wedding date: Wednesday, 29 Kislev 5787 = 9 December 2026 at 19:30
 export const WEDDING_DATE = '2026-12-09T19:30:00+02:00';
@@ -22,6 +22,67 @@ export function calculateUnlockDate(dayNumber: number): string {
   const d = String(targetDate.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
+
+const HEBREW_DAYS_OF_WEEK = [
+
+  'יום ראשון',
+  'יום שני',
+  'יום שלישי',
+  'יום רביעי',
+  'יום חמישי',
+  'יום שישי',
+  'שבת',
+];
+
+/**
+ * Automatically computes unlock_date, hebrew_date, civil_date, and day_of_week
+ * based on day_number (1-29) or custom unlock_date.
+ */
+export function getDayMetadata(
+  dayNumber: number | null,
+  unlockDateStr?: string | null
+): {
+  unlock_date: string | null;
+  hebrew_date: string | null;
+  civil_date: string | null;
+  day_of_week: string | null;
+} {
+  if (dayNumber === null && !unlockDateStr) {
+    return {
+      unlock_date: null,
+      hebrew_date: null,
+      civil_date: null,
+      day_of_week: null,
+    };
+  }
+
+  const effectiveUnlockDate =
+    unlockDateStr || (dayNumber !== null ? calculateUnlockDate(dayNumber) : null);
+
+  let civil_date: string | null = null;
+  let day_of_week: string | null = null;
+
+  if (effectiveUnlockDate) {
+    const [y, m, d] = effectiveUnlockDate.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    civil_date = `${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}`;
+    day_of_week = HEBREW_DAYS_OF_WEEK[dateObj.getDay()];
+  }
+
+  let hebrew_date: string | null = null;
+  if (dayNumber !== null) {
+    const numeral = HEBREW_DAYS_NUMERALS[dayNumber] || `${dayNumber}`;
+    hebrew_date = `${numeral} כסלו`;
+  }
+
+  return {
+    unlock_date: effectiveUnlockDate,
+    hebrew_date,
+    civil_date,
+    day_of_week,
+  };
+}
+
 
 
 // Hebrew day numerals
