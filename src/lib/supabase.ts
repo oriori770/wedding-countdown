@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { CountdownDay } from '../types/countdown';
 import { MOCK_DAYS, INITIAL_PENDING_SUBMISSIONS, getDayMetadata } from '../config/constants';
+import imageCompression from 'browser-image-compression';
 
 
 const LOCAL_STORAGE_DATA_KEY = 'wedding_countdown_all_items';
@@ -151,15 +152,30 @@ export async function fetchAllSubmissions(): Promise<CountdownDay[]> {
  * Fallback: converts file to a Base64 data URL so it works offline/without credentials.
  */
 export async function uploadMediaFile(file: File): Promise<string> {
+  let fileToUpload = file;
+
+  if (file.type.startsWith('image/')) {
+    try {
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1080,
+        useWebWorker: true,
+      };
+      fileToUpload = await imageCompression(file, options);
+    } catch (error) {
+      console.warn('Image compression failed, using original file:', error);
+    }
+  }
+
   if (supabase) {
     try {
-      const ext = file.name.split('.').pop() || 'bin';
-      const cleanName = file.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const ext = fileToUpload.name.split('.').pop() || 'bin';
+      const cleanName = fileToUpload.name.replace(/[^a-zA-Z0-9_-]/g, '_');
       const uniqueFilename = `${Date.now()}_${cleanName}.${ext}`;
 
       const { data, error } = await supabase.storage
         .from('media')
-        .upload(uniqueFilename, file, {
+        .upload(uniqueFilename, fileToUpload, {
           cacheControl: '3600',
           upsert: false,
         });
@@ -188,7 +204,7 @@ export async function uploadMediaFile(file: File): Promise<string> {
     reader.onerror = (error) => {
       reject(error);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(fileToUpload);
   });
 }
 
