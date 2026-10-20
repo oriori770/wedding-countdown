@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Lock,
   Unlock,
@@ -19,6 +19,7 @@ import {
   Sparkles,
   Search,
   X,
+  UploadCloud,
 } from 'lucide-react';
 import type { CountdownDay, DayContentType, QuizData } from '../types/countdown';
 import {
@@ -30,6 +31,7 @@ import {
   updateDayItem,
   deleteDayItem,
   createSubmission,
+  uploadMediaFile,
 } from '../lib/supabase';
 
 interface AdminDashboardProps {
@@ -77,6 +79,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newType, setNewType] = useState<DayContentType>('letter');
   const [newDayNumber, setNewDayNumber] = useState<number | ''>('');
   const [newUnlockDate, setNewUnlockDate] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
+  const [isMediaVideo, setIsMediaVideo] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newMediaUrl, setNewMediaUrl] = useState('');
   const [newCouponCode, setNewCouponCode] = useState('');
   const [newQuizQuestion, setNewQuizQuestion] = useState('');
@@ -90,6 +97,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Check PIN
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      showNotification('הקובץ שנבחר גדול מדי. אנא בחרו קובץ עד 50MB.');
+      return;
+    }
+
+    setMediaFile(file);
+
+    const isVideo = file.type.startsWith('video/');
+    setIsMediaVideo(isVideo);
+
+    const previewUrl = URL.createObjectURL(file);
+    setMediaPreviewUrl(previewUrl);
+  };
+
+  const handleRemoveMedia = () => {
+    if (mediaPreviewUrl) {
+      URL.revokeObjectURL(mediaPreviewUrl);
+    }
+    setMediaFile(null);
+    setMediaPreviewUrl(null);
+    setIsMediaVideo(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pinInput.trim() === ADMIN_PIN) {
@@ -245,30 +283,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
 
-    let quizData: QuizData | undefined = undefined;
-    if (newType === 'quiz' && newQuizQuestion.trim()) {
-      quizData = {
-        question: newQuizQuestion.trim(),
-        options: newQuizOptions.map((o) => o.trim() || 'אפשרות'),
-        correctIndex: newQuizCorrect,
-        groomNote: newQuizGroomNote.trim() || 'כל הכבוד!',
-      };
-    }
-
-    const payload: Partial<CountdownDay> = {
-      title: newTitle.trim(),
-      sender_name: newSender.trim() || 'החתן',
-      content: newContent.trim(),
-      type: newType,
-      day_number: newDayNumber === '' ? null : Number(newDayNumber),
-      unlock_date: newUnlockDate || (newDayNumber !== '' ? calculateUnlockDate(Number(newDayNumber)) : null),
-      is_approved: newDayNumber !== '' && newUnlockDate !== '',
-      media_url: newMediaUrl.trim() || undefined,
-      coupon_code: newType === 'coupon' ? newCouponCode.trim() : undefined,
-      quiz_data: quizData,
-    };
+    setIsSubmitting(true);
 
     try {
+      let uploadedUrl: string | undefined = undefined;
+
+      if (mediaFile) {
+        uploadedUrl = await uploadMediaFile(mediaFile);
+      }
+
+      let quizData: QuizData | undefined = undefined;
+      if (newType === 'quiz' && newQuizQuestion.trim()) {
+        quizData = {
+          question: newQuizQuestion.trim(),
+          options: newQuizOptions.map((o) => o.trim() || 'אפשרות'),
+          correctIndex: newQuizCorrect,
+          groomNote: newQuizGroomNote.trim() || 'כל הכבוד!',
+        };
+      }
+
+      const payload: Partial<CountdownDay> = {
+        title: newTitle.trim(),
+        sender_name: newSender.trim() || 'החתן',
+        content: newContent.trim(),
+        type: newType,
+        day_number: newDayNumber === '' ? null : Number(newDayNumber),
+        unlock_date: newUnlockDate || (newDayNumber !== '' ? calculateUnlockDate(Number(newDayNumber)) : null),
+        is_approved: newDayNumber !== '' && newUnlockDate !== '',
+        media_url: uploadedUrl || newMediaUrl.trim() || undefined,
+        coupon_code: newType === 'coupon' ? newCouponCode.trim() : undefined,
+        quiz_data: quizData,
+      };
+
       await createSubmission(payload);
       showNotification('הפריט החדש נוצר בהצלחה! ✨');
       setIsCreateModalOpen(false);
@@ -282,10 +328,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setNewMediaUrl('');
       setNewCouponCode('');
       setNewQuizQuestion('');
+      handleRemoveMedia();
       onRefreshData?.();
     } catch (err) {
       console.error(err);
       showNotification('שגיאה ביצירת הפריט.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -608,13 +657,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       src={day.media_url}
                       controls
                       playsInline
-                      className="max-h-36 w-full object-contain"
+                      className="max-h-36 w-full object-contain bg-black"
                     />
                   ) : (
                     <img
                       src={day.media_url}
                       alt={currentTitle}
-                      className="max-h-36 w-full object-cover"
+                      className="max-h-36 w-full object-contain bg-black"
                     />
                   )}
                 </div>
@@ -905,19 +954,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
               </div>
 
-              {/* Media URL if applicable */}
+              {/* Media Upload */}
               {(newType === 'letter' || newType === 'video') && (
                 <div>
-                  <label className="block font-bold text-stone-700 mb-0.5">
-                    קישור לתמונה או סרטון (URL)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-stone-700">
+                      הוספת תמונה או סרטון
+                    </label>
+                    <span className="text-[11px] text-stone-400">אופציונלי</span>
+                  </div>
+
                   <input
-                    type="url"
-                    value={newMediaUrl}
-                    onChange={(e) => setNewMediaUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:border-rose-400 text-ltr"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="media-file-input"
                   />
+
+                  {!mediaPreviewUrl ? (
+                    <label
+                      htmlFor="media-file-input"
+                      className="border-2 border-dashed border-rose-200 hover:border-rose-400 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-white/60 hover:bg-rose-50/50 transition-colors text-center"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                        <UploadCloud className="w-5 h-5" />
+                      </div>
+                      <span className="font-semibold text-stone-700 text-xs">
+                        לחצו כאן להעלאת תמונה או סרטון
+                      </span>
+                      <span className="text-[11px] text-stone-400">
+                        תומך בתמונות (JPG, PNG) וסרטוני וידאו (MP4) עד 50MB
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="relative rounded-2xl overflow-hidden border border-rose-200 bg-black/5 p-2 flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={handleRemoveMedia}
+                        className="absolute top-3 left-3 z-10 w-7 h-7 rounded-full bg-stone-900/80 hover:bg-stone-900 text-white flex items-center justify-center transition-colors shadow-sm"
+                        title="הסרת קובץ"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+
+                      <div className="max-h-48 rounded-xl overflow-hidden flex items-center justify-center bg-black/80">
+                        {isMediaVideo ? (
+                          <video
+                            src={mediaPreviewUrl}
+                            controls
+                            className="max-h-48 w-full object-contain bg-black"
+                          />
+                        ) : (
+                          <img
+                            src={mediaPreviewUrl}
+                            alt="Preview"
+                            className="max-h-48 w-full object-contain bg-black"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1000,9 +1098,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
-                  שמירת הפריט במערכת
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      שומר...
+                    </>
+                  ) : (
+                    'שמירת הפריט במערכת'
+                  )}
                 </button>
               </div>
             </form>
