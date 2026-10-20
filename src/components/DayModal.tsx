@@ -205,7 +205,7 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
                 </div>
                 <div className="text-right mt-3 font-sans not-italic text-xs text-rose-600 font-bold flex items-center gap-1 justify-end">
                   <span>באהבה גדולה,</span>
-                  <span>{day.sender_name || 'תומר'}</span>
+                  <span>{day.sender_name}</span>
                   <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline" />
                 </div>
               </div>

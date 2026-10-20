@@ -24,7 +24,6 @@ export function calculateUnlockDate(dayNumber: number): string {
 }
 
 const HEBREW_DAYS_OF_WEEK = [
-
   'יום ראשון',
   'יום שני',
   'יום שלישי',

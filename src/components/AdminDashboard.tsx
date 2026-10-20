@@ -849,7 +849,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     type="text"
                     value={newSender}
                     onChange={(e) => setNewSender(e.target.value)}
-                    placeholder="החתן תומר"
+                    placeholder="הבסטי"
                     className="w-full px-2.5 py-1.5 rounded-lg border border-stone-200 focus:outline-none focus:border-rose-400"
                   />
                 </div>
