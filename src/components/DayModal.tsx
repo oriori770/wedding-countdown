@@ -183,14 +183,13 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
           {day.type === 'letter' && (
             <div className="space-y-4">
               {day.media_url && (
-                <div className="relative rounded-2xl overflow-hidden border border-rose-100 shadow-sm max-h-56">
+                <div className="relative rounded-2xl overflow-hidden border border-rose-100 shadow-sm bg-black flex justify-center items-center">
                   <img
                     src={day.media_url}
                     alt={day.title}
-                    className="w-full h-full object-cover"
+                    className="max-h-[60vh] w-full object-contain"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-900/40 via-transparent to-transparent pointer-events-none" />
                 </div>
               )}
 
@@ -215,19 +214,19 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
           {/* Dynamic Content: VIDEO */}
           {day.type === 'video' && (
             <div className="space-y-3">
-              <div className="relative rounded-2xl overflow-hidden bg-black aspect-video border-2 border-rose-200 shadow-md">
+              <div className="relative rounded-2xl overflow-hidden bg-black border-2 border-rose-200 shadow-md flex justify-center items-center">
                 {day.media_url ? (
                   <video
                     controls
                     playsInline
-                    className="w-full h-full object-cover"
+                    className="max-h-[60vh] w-full object-contain"
                     poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"
                   >
                     <source src={day.media_url} type="video/mp4" />
                     הדפדפן שלך אינו תומך בניגון וידאו זה.
                   </video>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-4 text-white text-center">
+                  <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center p-4 text-white text-center">
                     <Film className="w-10 h-10 text-rose-400 mb-2 animate-pulse" />
                     <p className="text-xs">סרטון הברכה בטעינה...</p>
                   </div>

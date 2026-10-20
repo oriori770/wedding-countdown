@@ -657,13 +657,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       src={day.media_url}
                       controls
                       playsInline
-                      className="max-h-36 w-full object-contain"
+                      className="max-h-36 w-full object-contain bg-black"
                     />
                   ) : (
                     <img
                       src={day.media_url}
                       alt={currentTitle}
-                      className="max-h-36 w-full object-cover"
+                      className="max-h-36 w-full object-contain bg-black"
                     />
                   )}
                 </div>
@@ -1004,13 +1004,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <video
                             src={mediaPreviewUrl}
                             controls
-                            className="max-h-48 w-full object-contain"
+                            className="max-h-48 w-full object-contain bg-black"
                           />
                         ) : (
                           <img
                             src={mediaPreviewUrl}
                             alt="Preview"
-                            className="max-h-48 w-full object-cover"
+                            className="max-h-48 w-full object-contain bg-black"
                           />
                         )}
                       </div>

@@ -356,7 +356,7 @@ export const SubmitGreeting: React.FC<SubmitGreetingProps> = ({
                         <img
                           src={mediaPreviewUrl}
                           alt="תצוגה מקדימה"
-                          className="max-h-48 w-full object-cover"
+                          className="max-h-48 w-full object-contain bg-black"
                         />
                       )}
                     </div>
