@@ -7,7 +7,6 @@ import { HEBREW_DAYS_NUMERALS } from '../config/constants';
 interface HebrewCalendarGridProps {
   days: CountdownDay[];
   openedDayIds: number[];
-  isPreviewMode: boolean;
   onOpenDay: (day: CountdownDay) => void;
 }
 
@@ -25,7 +24,6 @@ const DAYS_OF_WEEK = [
 export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
   days,
   openedDayIds,
-  isPreviewMode,
   onOpenDay,
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -39,7 +37,6 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
 
   // Check if a specific day is unlocked
   const isDayUnlocked = (day: CountdownDay) => {
-    if (isPreviewMode) return true;
     if (!day.unlock_date) return false;
 
     const today = new Date();
