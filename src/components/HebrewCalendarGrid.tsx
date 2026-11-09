@@ -8,6 +8,7 @@ interface HebrewCalendarGridProps {
   days: CountdownDay[];
   openedDayIds: number[];
   onOpenDay: (day: CountdownDay) => void;
+  isPreviewMode?: boolean;
 }
 
 // Days of the Hebrew week starting from Sunday (RTL order: ראשון to שבת)
@@ -25,6 +26,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
   days,
   openedDayIds,
   onOpenDay,
+  isPreviewMode = false,
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -38,6 +40,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
   // Check if a specific day is unlocked
   const isDayUnlocked = (day: CountdownDay) => {
     if (!day.unlock_date) return false;
+    if (isPreviewMode) return true;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

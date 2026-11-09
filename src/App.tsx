@@ -55,6 +55,9 @@ export const App: React.FC = () => {
   });
   const [accessCodeInput, setAccessCodeInput] = useState('');
   const [accessCodeError, setAccessCodeError] = useState(false);
+  const isPreviewMode =
+    typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('preview') === 'true';
 
   const handleAccessCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +245,13 @@ export const App: React.FC = () => {
       dir="rtl"
       className="min-h-screen text-stone-800 bg-rose-50/60 pb-10 selection:bg-rose-200"
     >
+      {/* Preview Mode Notification Banner */}
+      {isPreviewMode && (
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white text-xs font-bold py-1.5 px-4 text-center shadow-md flex items-center justify-center gap-1.5 backdrop-blur-xs">
+          <span>✨ מצב תצוגה מקדימה פעיל (כל הימים פתוחים)</span>
+        </div>
+      )}
+
       {/* Background ambient decorative glowing orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-rose-200/30 blur-3xl animate-float" />
@@ -269,6 +279,7 @@ export const App: React.FC = () => {
               days={days}
               openedDayIds={openedDayIds}
               onOpenDay={handleDayClick}
+              isPreviewMode={isPreviewMode}
             />
           )}
         </section>
