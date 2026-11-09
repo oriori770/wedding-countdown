@@ -150,7 +150,7 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-700/30 text-rose-100">
               {renderBadgeIcon(day.type)}
               <span>
-                {day.type === 'letter' && 'מכתב אהבה'}
+                {day.type === 'letter' && 'מכתב ברכה'}
                 {day.type === 'video' && 'ברכת וידאו'}
                 {day.type === 'quiz' && 'חידון זוגי'}
                 {day.type === 'coupon' && 'קופון פינוק'}
@@ -174,10 +174,12 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
 
         {/* Modal Body: Scrollable Content */}
         <div className="p-5 overflow-y-auto space-y-4 text-stone-700">
-          {/* Main Description Content */}
-          <p className="text-sm leading-relaxed text-stone-600 whitespace-pre-line font-normal">
-            {day.content}
-          </p>
+          {/* Main Description Content (shown directly for non-letter types) */}
+          {day.type !== 'letter' && (
+            <p className="text-sm leading-relaxed text-stone-600 whitespace-pre-line font-normal">
+              {day.content}
+            </p>
+          )}
 
           {/* Dynamic Content: LETTER */}
           {day.type === 'letter' && (
@@ -193,20 +195,21 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
                 </div>
               )}
 
-              {/* Romantic Letter Postcard styling */}
-              <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60 relative shadow-2xs font-serif italic text-stone-800 text-sm leading-relaxed">
+              {/* Warm Letter Postcard styling with real greeting content */}
+              <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60 relative shadow-2xs text-stone-800 text-sm leading-relaxed">
                 <div className="text-amber-400 text-3xl font-serif leading-none mb-1 select-none">
                   “
                 </div>
-                <div className="px-2">
-                  רגע לפני שאנחנו הופכים לאחד, רציתי להזכיר לך כמה את אהובה, מוערכת ומיוחדת. תמיד
-                  לצידך בטוב וברע.
+                <div className="px-2 whitespace-pre-line text-stone-700 leading-relaxed font-normal">
+                  {day.content}
                 </div>
-                <div className="text-right mt-3 font-sans not-italic text-xs text-rose-600 font-bold flex items-center gap-1 justify-end">
-                  <span>באהבה גדולה,</span>
-                  <span>{day.sender_name}</span>
-                  <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline" />
-                </div>
+                {day.sender_name && (
+                  <div className="text-right mt-3 font-sans not-italic text-xs text-rose-600 font-bold flex items-center gap-1 justify-end">
+                    <span>באהבה,</span>
+                    <span>{day.sender_name}</span>
+                    <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline" />
+                  </div>
+                )}
               </div>
             </div>
           )}
