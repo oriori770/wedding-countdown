@@ -1,0 +1,28 @@
+{
+  "name": "ספירה לאחור לחתונה | מושקי ושמוליק",
+  "short_name": "מושקי ושמוליק",
+  "description": "יומן הפתעות וספירה לאחור אינטראקטיבית לחתונת השנה",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff1f2",
+  "theme_color": "#fff1f2",
+  "icons": [
+    {
+      "src": "/groom.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/groom.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/groom.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
