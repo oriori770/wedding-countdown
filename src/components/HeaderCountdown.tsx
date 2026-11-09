@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Sparkles, Gift, ShieldAlert } from 'lucide-react';
+import { Heart, Sparkles, Gift } from 'lucide-react';
 
 interface HeaderCountdownProps {
   brideName: string;
@@ -7,7 +7,6 @@ interface HeaderCountdownProps {
   weddingDate: string; // ISO string
   totalDays: number;
   openedDaysCount: number;
-  onOpenAdmin: () => void;
 }
 
 interface TimeRemaining {
@@ -24,7 +23,6 @@ export const HeaderCountdown: React.FC<HeaderCountdownProps> = ({
   weddingDate,
   totalDays,
   openedDaysCount,
-  onOpenAdmin,
 }) => {
   const calculateTimeRemaining = (): TimeRemaining => {
     const target = new Date(weddingDate).getTime();
@@ -67,16 +65,6 @@ export const HeaderCountdown: React.FC<HeaderCountdownProps> = ({
           <span>המסע שלנו לחופה</span>
         </div>
 
-        {/* Discreet Admin Entrance for the Groom / Developer */}
-        <button
-          onClick={onOpenAdmin}
-          type="button"
-          title="כניסה לפאנל מנהל (הצגת כל הימים)"
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/70 hover:bg-white text-stone-400 hover:text-stone-700 border border-stone-200/70 transition-all cursor-pointer"
-        >
-          <ShieldAlert className="w-3 h-3 text-stone-400" />
-          <span>מנהל</span>
-        </button>
       </div>
 
       {/* Couple's Names & Romantic Header */}

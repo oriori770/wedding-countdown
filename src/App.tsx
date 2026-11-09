@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { Heart, RefreshCw, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
+import { Heart, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { CountdownDay } from './types/countdown';
 import { BRIDE_NAME, GROOM_NAME, WEDDING_DATE } from './config/constants';
 import { fetchApprovedDays, fetchAllSubmissions } from './lib/supabase';
@@ -47,14 +47,26 @@ export const App: React.FC = () => {
 
   const [selectedDay, setSelectedDay] = useState<CountdownDay | null>(null);
 
-  // Preview mode toggle for Bride Calendar
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(() => {
+  const [isAccessGranted, setIsAccessGranted] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('preview') === 'true';
+      return localStorage.getItem('site_access_granted') === 'true';
     }
     return false;
   });
+  const [accessCodeInput, setAccessCodeInput] = useState('');
+  const [accessCodeError, setAccessCodeError] = useState(false);
+
+  const handleAccessCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const expectedCode = import.meta.env.VITE_SITE_ACCESS_CODE;
+    if (accessCodeInput.trim() === expectedCode) {
+      setIsAccessGranted(true);
+      localStorage.setItem('site_access_granted', 'true');
+      setAccessCodeError(false);
+    } else {
+      setAccessCodeError(true);
+    }
+  };
 
   // Sync mode with browser back/forward buttons
   useEffect(() => {
@@ -133,22 +145,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleTogglePreview = () => {
-    setIsPreviewMode((prev) => {
-      const next = !prev;
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        if (next) {
-          url.searchParams.set('preview', 'true');
-        } else {
-          url.searchParams.delete('preview');
-        }
-        window.history.replaceState({}, '', url.toString());
-      }
-      return next;
-    });
-  };
-
   // Handle opening a day from the Hebrew Calendar
   const handleDayClick = (day: CountdownDay) => {
     const isAlreadyOpened = openedDayIds.includes(day.id);
@@ -200,6 +196,46 @@ export const App: React.FC = () => {
     );
   }
 
+
+  // Access code protection for the Bride's view
+  if (!isAccessGranted && mode === 'bride') {
+    return (
+      <div dir="rtl" className="min-h-screen flex flex-col items-center justify-center bg-rose-50/60 p-4">
+        <div className="max-w-md w-full glass-panel rounded-2xl p-6 shadow-sm border border-rose-100 text-center">
+          <Heart className="w-10 h-10 text-rose-500 fill-rose-400 mx-auto mb-4 animate-pulse" />
+          <h2 className="text-xl font-bold text-stone-800 mb-2">ברוכים הבאים</h2>
+          <p className="text-sm text-stone-500 mb-6">אנא הזינו את קוד הגישה כדי לצפות בלוח ההפתעות.</p>
+          <form onSubmit={handleAccessCodeSubmit} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                value={accessCodeInput}
+                onChange={(e) => {
+                  setAccessCodeInput(e.target.value);
+                  setAccessCodeError(false);
+                }}
+                placeholder="קוד גישה"
+                className={`w-full px-4 py-2.5 rounded-xl bg-white border text-center text-sm focus:outline-none transition-all ${
+                  accessCodeError ? 'border-rose-400 ring-2 ring-rose-200' : 'border-stone-200 focus:border-rose-400'
+                }`}
+                autoFocus
+              />
+              {accessCodeError && (
+                <span className="block text-xs text-rose-500 font-bold mt-2">קוד שגוי, אנא נסו שוב.</span>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold shadow-xs transition-colors"
+            >
+              כניסה
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   // 3. Default: Bride's Countdown Board
   return (
     <div
@@ -221,47 +257,8 @@ export const App: React.FC = () => {
           weddingDate={WEDDING_DATE}
           totalDays={29}
           openedDaysCount={openedDayIds.length}
-          onOpenAdmin={() => navigateToMode('admin')}
+
         />
-
-        {/* Guest submission invitation banner */}
-        <div className="mb-3 px-3 py-2 rounded-2xl bg-gradient-to-r from-rose-100/90 via-pink-100/80 to-rose-50/90 border border-rose-200/80 shadow-2xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-white text-rose-500 flex items-center justify-center text-xs shadow-2xs">
-              💌
-            </span>
-            <div className="text-right">
-              <span className="block text-xs font-bold text-stone-800 leading-tight">
-                חברים ומשפחה?
-              </span>
-              <span className="block text-[11px] text-stone-500">
-                שלחו הפתעה שתשובץ בלוח
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigateToMode('submit')}
-            className="px-2.5 py-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
-          >
-            <Send className="w-3 h-3" />
-            <span>שליחה</span>
-          </button>
-        </div>
-
-        {/* Preview Banner if active */}
-        {isPreviewMode && (
-          <div className="mb-2 p-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
-            <span>🔓 מצב בדיקה פעיל — כל משבצות הלוח פתוחות</span>
-            <button
-              type="button"
-              onClick={handleTogglePreview}
-              className="underline font-bold text-amber-900 mr-1 cursor-pointer"
-            >
-              כיבוי
-            </button>
-          </div>
-        )}
 
         {/* Hebrew Calendar Grid */}
         <section className="my-1">
@@ -271,7 +268,6 @@ export const App: React.FC = () => {
             <HebrewCalendarGrid
               days={days}
               openedDayIds={openedDayIds}
-              isPreviewMode={isPreviewMode}
               onOpenDay={handleDayClick}
             />
           )}
@@ -286,24 +282,6 @@ export const App: React.FC = () => {
 
           <div className="flex items-center justify-center gap-2.5 text-[11px] text-stone-400 flex-wrap">
             <button
-              onClick={() => navigateToMode('submit')}
-              type="button"
-              className="hover:text-rose-600 text-stone-500 transition-colors flex items-center gap-1 cursor-pointer font-medium"
-            >
-              <span>שליחת ברכה</span>
-            </button>
-            <span>•</span>
-            <button
-              onClick={handleTogglePreview}
-              type="button"
-              className={`transition-colors flex items-center gap-1 cursor-pointer ${
-                isPreviewMode ? 'text-amber-600 font-bold' : 'hover:text-stone-600'
-              }`}
-            >
-              <span>{isPreviewMode ? 'נעילת לוח' : 'פתיחה לבדיקה'}</span>
-            </button>
-            <span>•</span>
-            <button
               onClick={handleResetProgress}
               type="button"
               className="hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer"
@@ -316,15 +294,6 @@ export const App: React.FC = () => {
               <ShieldCheck className="w-3 h-3 text-emerald-500" />
               <span>שמור</span>
             </span>
-            <span>•</span>
-            <button
-              onClick={() => navigateToMode('admin')}
-              type="button"
-              className="hover:text-amber-700 text-stone-500 flex items-center gap-1 cursor-pointer font-semibold"
-            >
-              <ShieldAlert className="w-3 h-3 text-amber-500" />
-              <span>מנהל</span>
-            </button>
           </div>
         </footer>
       </main>
