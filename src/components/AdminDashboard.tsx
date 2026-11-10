@@ -24,6 +24,7 @@ import {
 import type { CountdownDay, DayContentType, QuizData } from '../types/countdown';
 import {
   ADMIN_PIN,
+  GROOM_NAME,
   calculateUnlockDate,
 } from '../config/constants';
 
@@ -304,7 +305,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const payload: Partial<CountdownDay> = {
         title: newTitle.trim(),
-        sender_name: newSender.trim() || 'החתן',
+        sender_name: newSender.trim() || GROOM_NAME || 'החתן',
         content: newContent.trim(),
         type: newType,
         day_number: newDayNumber === '' ? null : Number(newDayNumber),
@@ -1081,7 +1082,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div>
                     <label className="block font-bold text-indigo-900 mb-0.5">
-                      הערת החתן (נחשפת לאחר המענה)
+                      הערת השולח / החתן (נחשפת לאחר המענה)
                     </label>
                     <input
                       type="text"

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { CountdownDay, DayContentType } from '../types/countdown';
+import { getCouponRedemptionText, getQuizNoteLabel } from '../lib/countdownHelpers';
 
 
 interface DayModalProps {
@@ -303,12 +304,12 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
                 })}
               </div>
 
-              {/* Groom's Note revealed after answering */}
+              {/* Quiz Note revealed after answering */}
               {selectedOption !== null && (
                 <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 animate-in slide-in-from-bottom-2 duration-300">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 mb-1">
                     <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-                    <span>הערה מהחתן:</span>
+                    <span>{getQuizNoteLabel(day.sender_name)}</span>
                   </div>
                   <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
                     {day.quiz_data.groomNote}
@@ -364,6 +365,14 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
                       </h4>
                     </div>
 
+                    {day.sender_name && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/80 text-rose-700 text-xs font-semibold">
+                        <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
+                        <span>מוענק באהבה על ידי:</span>
+                        <strong className="underline underline-offset-2">{day.sender_name}</strong>
+                      </div>
+                    )}
+
                     {day.coupon_code && (
                       <div className="flex items-center justify-center gap-2 pt-1">
                         <div className="bg-white px-3 py-1.5 rounded-lg border border-rose-200 font-mono text-sm font-bold text-rose-600 tracking-wider shadow-2xs">
@@ -390,8 +399,8 @@ export const DayModal: React.FC<DayModalProps> = ({ day, onClose }) => {
                       </div>
                     )}
 
-                    <div className="pt-2 border-t border-rose-200/60 text-stone-500 text-[11px]">
-                      ❤️ ניתן למימוש אצל החתן בכל עת, ללא הגבלת תוקף!
+                    <div className="pt-2 border-t border-rose-200/60 text-stone-600 text-[11px] font-medium">
+                      {getCouponRedemptionText(day.sender_name)}
                     </div>
                   </div>
                 </div>
