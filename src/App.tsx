@@ -265,7 +265,7 @@ export const App: React.FC = () => {
           brideName={BRIDE_NAME}
           groomName={GROOM_NAME}
           weddingDate={WEDDING_DATE}
-          totalDays={29}
+          totalDays={30}
           openedDaysCount={openedDayIds.length}
 
         />
