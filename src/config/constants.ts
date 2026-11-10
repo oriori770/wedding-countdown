@@ -71,7 +71,11 @@ export function getDayMetadata(
   let hebrew_date: string | null = null;
   if (dayNumber !== null) {
     const numeral = HEBREW_DAYS_NUMERALS[dayNumber] || `${dayNumber}`;
-    hebrew_date = `${numeral} כסלו`;
+    if (dayNumber === 0) {
+      hebrew_date = `${numeral} חשוון`;
+    } else {
+      hebrew_date = `${numeral} כסלו`;
+    }
   }
 
   return {
@@ -86,6 +90,7 @@ export function getDayMetadata(
 
 // Hebrew day numerals
 export const HEBREW_DAYS_NUMERALS: Record<number, string> = {
+  0: "ל׳",
   1: "א׳",
   2: "ב׳",
   3: "ג׳",
@@ -119,6 +124,19 @@ export const HEBREW_DAYS_NUMERALS: Record<number, string> = {
 
 // All 29 days of Kislev leading to the wedding on 29 Kislev (9 Dec 2026)
 export const MOCK_DAYS: CountdownDay[] = [
+  {
+    id: 0,
+    day_number: 0,
+    unlock_date: '2026-11-10',
+    hebrew_date: "ל׳ חשוון",
+    civil_date: '10.11',
+    day_of_week: 'יום שלישי',
+    title: 'רגע לפני שמתחילים...',
+    type: 'letter',
+    content:
+      'מחר אנחנו מתחילים את חודש כסלו, החודש שלנו! בואי ניקח נשימה עמוקה ונזכור שהכי חשוב זה אנחנו.',
+    sender_name: 'תומר ❤️',
+  },
   {
     id: 1,
     day_number: 1,

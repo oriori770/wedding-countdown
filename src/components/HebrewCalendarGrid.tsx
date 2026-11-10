@@ -52,9 +52,9 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
   };
 
 
-  // Day 1 (א' כסלו) starts on Wednesday (Index 3: Sun=0, Mon=1, Tue=2, Wed=3).
-  // Therefore, we render 3 empty slots before Day 1.
-  const emptyPrecedingSlots = 3;
+  // Day 0 (ל' חשוון) starts on Tuesday (Index 2: Sun=0, Mon=1, Tue=2).
+  // Therefore, we render 2 empty slots before Day 0.
+  const emptyPrecedingSlots = 2;
 
   return (
     <div className="w-full relative">
@@ -77,7 +77,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
 
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
             <Sparkles className="w-3 h-3 text-rose-500 animate-pulse" />
-            <span>29 הפתעות עד החופה</span>
+            <span>30 הפתעות עד החופה</span>
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
 
         {/* Calendar Cells Grid (7 Columns) */}
         <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-          {/* Preceding empty cells before Wednesday */}
+          {/* Preceding empty cells before Tuesday */}
           {Array.from({ length: emptyPrecedingSlots }).map((_, idx) => (
             <div
               key={`empty-${idx}`}
@@ -117,7 +117,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
             />
           ))}
 
-          {/* 29 Days of Kislev */}
+          {/* 30 Days of Surprises (includes day 0) */}
           {days.map((day) => {
             const isUnlocked = isDayUnlocked(day);
             const isOpened = openedDayIds.includes(day.id);

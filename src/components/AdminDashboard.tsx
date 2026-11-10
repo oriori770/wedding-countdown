@@ -205,7 +205,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const updated = { ...current, [field]: value };
 
       // Auto-date calculation if day_number changes
-      if (field === 'day_number' && typeof value === 'number' && value >= 1 && value <= 29) {
+      if (field === 'day_number' && typeof value === 'number' && value >= 0 && value <= 29) {
         const autoDate = calculateUnlockDate(value);
         updated.unlock_date = autoDate;
       }
@@ -708,7 +708,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-white/70 border border-stone-200/70">
                   <div>
                     <label className="block text-[10px] font-bold text-stone-600 mb-0.5">
-                      מספר יום בלוח (1-29)
+                      מספר יום בלוח (0-29)
                     </label>
                     <input
                       type="number"
@@ -909,7 +909,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-rose-50/50 border border-rose-100">
                 <div>
                   <label className="block font-bold text-stone-700 mb-0.5">
-                    יום בלוח (1-29)
+                    יום בלוח (0-29)
                   </label>
                   <input
                     type="number"
@@ -919,7 +919,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) => {
                       const v = e.target.value === '' ? '' : Number(e.target.value);
                       setNewDayNumber(v);
-                      if (typeof v === 'number' && v >= 1 && v <= 29) {
+                      if (typeof v === 'number' && v >= 0 && v <= 29) {
                         setNewUnlockDate(calculateUnlockDate(v));
                       }
                     }}
