@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Gift, Sparkles, Heart } from 'lucide-react';
 import type { CountdownDay } from '../types/countdown';
 
-import { HEBREW_DAYS_NUMERALS } from '../config/constants';
+import { HEBREW_DAYS_NUMERALS, getDayMetadata } from '../config/constants';
 
 interface HebrewCalendarGridProps {
   days: CountdownDay[];
@@ -70,7 +70,7 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
                 חודש כסלו תשפ״ז
               </h3>
               <p className="text-[11px] text-stone-500">
-                11 בנובמבר — 9 בדצמבר 2026
+                10 בנובמבר — 9 בדצמבר 2026
               </p>
             </div>
           </div>
@@ -118,7 +118,25 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
           ))}
 
           {/* 30 Days of Surprises (includes day 0) */}
-          {days.map((day) => {
+          {Array.from({ length: 30 }).map((_, index) => {
+            const dayNumber = index;
+            // Find the day in the database (or mock data) if it exists
+            const existingDay = days.find((d) => d.day_number === dayNumber);
+
+            // Generate fallback metadata so the calendar structure is always preserved
+            const metadata = getDayMetadata(dayNumber);
+            const day: CountdownDay = existingDay || {
+              id: -(dayNumber + 1), // Dummy ID for fallback
+              day_number: dayNumber,
+              title: 'נעול',
+              type: 'letter',
+              content: '',
+              unlock_date: metadata.unlock_date,
+              hebrew_date: metadata.hebrew_date || '',
+              civil_date: metadata.civil_date || '',
+              day_of_week: metadata.day_of_week || '',
+            };
+
             const isUnlocked = isDayUnlocked(day);
             const isOpened = openedDayIds.includes(day.id);
             const isWeddingDay = day.day_number === 29;
