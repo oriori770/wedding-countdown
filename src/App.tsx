@@ -6,6 +6,7 @@ import { BRIDE_NAME, GROOM_NAME, WEDDING_DATE } from './config/constants';
 import { fetchApprovedDays, fetchAllSubmissions } from './lib/supabase';
 import { HeaderCountdown } from './components/HeaderCountdown';
 import { HebrewCalendarGrid } from './components/HebrewCalendarGrid';
+import { NewSurpriseBanner } from './components/NewSurpriseBanner';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SubmitGreeting } from './components/SubmitGreeting';
 import { DayModal } from './components/DayModal';
@@ -267,8 +268,17 @@ export const App: React.FC = () => {
           weddingDate={WEDDING_DATE}
           totalDays={30}
           openedDaysCount={openedDayIds.length}
-
         />
+
+        {/* Daily New Surprise Effect & Announcement Banner */}
+        {!loading && (
+          <NewSurpriseBanner
+            days={days}
+            openedDayIds={openedDayIds}
+            onOpenDay={handleDayClick}
+            isPreviewMode={isPreviewMode}
+          />
+        )}
 
         {/* Hebrew Calendar Grid */}
         <section className="my-1">
