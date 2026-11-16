@@ -6,9 +6,12 @@ import { BRIDE_NAME, GROOM_NAME, WEDDING_DATE } from './config/constants';
 import { fetchApprovedDays, fetchAllSubmissions } from './lib/supabase';
 import { HeaderCountdown } from './components/HeaderCountdown';
 import { HebrewCalendarGrid } from './components/HebrewCalendarGrid';
+import { NewSurpriseBanner } from './components/NewSurpriseBanner';
+import { EntranceSurpriseModal } from './components/EntranceSurpriseModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SubmitGreeting } from './components/SubmitGreeting';
 import { DayModal } from './components/DayModal';
+import { getLatestUnopenedUnlockedDay } from './lib/countdownHelpers';
 
 const STORAGE_KEY = 'wedding_countdown_opened_days';
 
@@ -46,6 +49,7 @@ export const App: React.FC = () => {
   });
 
   const [selectedDay, setSelectedDay] = useState<CountdownDay | null>(null);
+  const [isEntranceModalDismissed, setIsEntranceModalDismissed] = useState<boolean>(false);
 
   const [isAccessGranted, setIsAccessGranted] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -145,11 +149,13 @@ export const App: React.FC = () => {
         console.warn(err);
       }
       setOpenedDayIds([]);
+      setIsEntranceModalDismissed(false);
     }
   };
 
   // Handle opening a day from the Hebrew Calendar
   const handleDayClick = (day: CountdownDay) => {
+    setIsEntranceModalDismissed(true);
     const isAlreadyOpened = openedDayIds.includes(day.id);
 
     // If first-time opening an unlocked day: blast celebratory confetti!
@@ -239,6 +245,19 @@ export const App: React.FC = () => {
     );
   }
 
+  const latestUnopenedDay = getLatestUnopenedUnlockedDay(
+    days,
+    openedDayIds,
+    isPreviewMode
+  );
+  const showEntranceModal =
+    !loading &&
+    mode === 'bride' &&
+    isAccessGranted &&
+    !selectedDay &&
+    !isEntranceModalDismissed &&
+    !!latestUnopenedDay;
+
   // 3. Default: Bride's Countdown Board
   return (
     <div
@@ -247,8 +266,15 @@ export const App: React.FC = () => {
     >
       {/* Preview Mode Notification Banner */}
       {isPreviewMode && (
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white text-xs font-bold py-1.5 px-4 text-center shadow-md flex items-center justify-center gap-1.5 backdrop-blur-xs">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white text-xs font-bold py-1.5 px-4 text-center shadow-md flex items-center justify-center gap-3 backdrop-blur-xs flex-wrap">
           <span>✨ מצב תצוגה מקדימה פעיל (כל הימים פתוחים)</span>
+          <button
+            type="button"
+            onClick={() => setIsEntranceModalDismissed(false)}
+            className="underline hover:text-amber-100 transition-colors cursor-pointer text-[11px]"
+          >
+            [בדיקת אפקט כניסה]
+          </button>
         </div>
       )}
 
@@ -267,8 +293,17 @@ export const App: React.FC = () => {
           weddingDate={WEDDING_DATE}
           totalDays={30}
           openedDaysCount={openedDayIds.length}
-
         />
+
+        {/* Daily New Surprise Effect & Announcement Banner */}
+        {!loading && (
+          <NewSurpriseBanner
+            days={days}
+            openedDayIds={openedDayIds}
+            onOpenDay={handleDayClick}
+            isPreviewMode={isPreviewMode}
+          />
+        )}
 
         {/* Hebrew Calendar Grid */}
         <section className="my-1">
@@ -308,6 +343,14 @@ export const App: React.FC = () => {
           </div>
         </footer>
       </main>
+
+      {/* Entrance Surprise Announcement Modal */}
+      <EntranceSurpriseModal
+        day={latestUnopenedDay}
+        isOpen={showEntranceModal}
+        onOpenSurprise={handleDayClick}
+        onClose={() => setIsEntranceModalDismissed(true)}
+      />
 
       {/* Detail Modal for Surprises (Letters, Quizzes, Coupons, Videos) */}
       <DayModal day={selectedDay} onClose={() => setSelectedDay(null)} />

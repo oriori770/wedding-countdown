@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Lock, Gift, Sparkles, Heart } from 'lucide-react';
 import type { CountdownDay } from '../types/countdown';
-
-import { HEBREW_DAYS_NUMERALS, getDayMetadata } from '../config/constants';
+import { HEBREW_DAYS_NUMERALS } from '../config/constants';
+import {
+  isDayUnlocked,
+  getAllCalendarDays,
+  getLatestUnopenedUnlockedDay,
+} from '../lib/countdownHelpers';
 
 interface HebrewCalendarGridProps {
   days: CountdownDay[];
@@ -37,24 +41,12 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
     }, 2800);
   };
 
-  // Check if a specific day is unlocked
-  const isDayUnlocked = (day: CountdownDay) => {
-    if (!day.unlock_date) return false;
-    if (isPreviewMode) return true;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [year, month, dayNum] = day.unlock_date.split('-').map(Number);
-    const unlockDate = new Date(year, month - 1, dayNum, 0, 0, 0, 0);
-
-    return today.getTime() >= unlockDate.getTime();
-  };
-
-
   // Day 0 (ל' חשוון) starts on Tuesday (Index 2: Sun=0, Mon=1, Tue=2).
   // Therefore, we render 2 empty slots before Day 0.
   const emptyPrecedingSlots = 2;
+
+  const allCalendarDays = getAllCalendarDays(days);
+  const latestUnopenedDay = getLatestUnopenedUnlockedDay(days, openedDayIds, isPreviewMode);
 
   return (
     <div className="w-full relative">
@@ -118,33 +110,15 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
           ))}
 
           {/* 30 Days of Surprises (includes day 0) */}
-          {Array.from({ length: 30 }).map((_, index) => {
-            const dayNumber = index;
-            // Find the day in the database (or mock data) if it exists
-            const existingDay = days.find((d) => d.day_number === dayNumber);
-
-            // Generate fallback metadata so the calendar structure is always preserved
-            const metadata = getDayMetadata(dayNumber);
-            const day: CountdownDay = existingDay || {
-              id: -(dayNumber + 1), // Dummy ID for fallback
-              day_number: dayNumber,
-              title: 'נעול',
-              type: 'letter',
-              content: '',
-              unlock_date: metadata.unlock_date,
-              hebrew_date: metadata.hebrew_date || '',
-              civil_date: metadata.civil_date || '',
-              day_of_week: metadata.day_of_week || '',
-            };
-
-            const isUnlocked = isDayUnlocked(day);
+          {allCalendarDays.map((day) => {
+            const isUnlocked = isDayUnlocked(day, isPreviewMode);
             const isOpened = openedDayIds.includes(day.id);
             const isWeddingDay = day.day_number === 29;
+            const isLatestUnopened = isUnlocked && !isOpened && latestUnopenedDay?.id === day.id;
             const hebrewNumeral =
               (day.day_number !== null
                 ? HEBREW_DAYS_NUMERALS[day.day_number]
                 : undefined) || `${day.day_number ?? ''}`;
-
 
             // 1. Wedding Day Special Styling (Day 29 - 9 Dec)
             if (isWeddingDay) {
@@ -160,6 +134,14 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
                       : 'bg-amber-50/70 border border-amber-200 text-stone-600'
                   }`}
                 >
+                  {isUnlocked && !isOpened && (
+                    <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 z-10 pointer-events-none">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-80" />
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-tr from-amber-400 to-rose-400 border border-white items-center justify-center text-[7px] text-white font-black shadow-xs">
+                        ★
+                      </span>
+                    </span>
+                  )}
                   <span className="text-[9px] font-extrabold text-amber-700 leading-none">
                     💍 חופה!
                   </span>
@@ -181,8 +163,20 @@ export const HebrewCalendarGrid: React.FC<HebrewCalendarGridProps> = ({
                   type="button"
                   onClick={() => onOpenDay(day)}
                   aria-label={`יום ${day.hebrew_date} - הפתעה ממתינה לך!`}
-                  className="relative group h-12 sm:h-14 rounded-xl p-1 flex flex-col items-center justify-between bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-sm ring-2 ring-rose-400/80 ring-offset-1 animate-pulse-subtle hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  className={`relative group h-12 sm:h-14 rounded-xl p-1 flex flex-col items-center justify-between bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer ${
+                    isLatestUnopened
+                      ? 'ring-2 ring-amber-300 ring-offset-1 shadow-md shadow-rose-400/50 animate-pulse-subtle scale-102'
+                      : 'ring-2 ring-rose-400/80 ring-offset-1 animate-pulse-subtle'
+                  }`}
                 >
+                  {/* Glowing Radar Ping Star Badge for New Unopened Surprise */}
+                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 z-10 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-80" />
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-tr from-amber-400 to-rose-400 border border-white items-center justify-center text-[7px] text-white font-black shadow-xs">
+                      ★
+                    </span>
+                  </span>
+
                   <div className="w-3.5 h-3.5 rounded-full bg-white/20 flex items-center justify-center">
                     <Gift className="w-2.5 h-2.5 text-white animate-bounce" />
                   </div>
